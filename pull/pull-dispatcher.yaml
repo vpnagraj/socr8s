@@ -1,0 +1,89 @@
+## RBAC to give the dispatcher access to k8s resource management (jobs, pods, logs)
+## need a role, service account, and role binding resource to attach the role to the SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pull-dispatcher
+  namespace: build-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pull-dispatcher
+  namespace: build-system
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs", "jobs/status"]
+    verbs: ["create", "get", "list", "watch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pull-dispatcher
+  namespace: build-system
+subjects:
+  - kind: ServiceAccount
+    name: pull-dispatcher
+    namespace: build-system
+roleRef:
+  kind: Role
+  name: pull-dispatcher
+  apiGroup: rbac.authorization.k8s.io
+---
+## ── Deployment ──────────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pull-dispatcher
+  namespace: build-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pull-dispatcher
+  template:
+    metadata:
+      labels:
+        app: pull-dispatcher
+    spec:
+      serviceAccountName: pull-dispatcher
+
+      containers:
+        - name: dispatcher
+          image: pull-dispatcher:latest
+          imagePullPolicy: Never
+
+          env:
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds
+                  key: MONGO_USERNAME
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds
+                  key: MONGO_PASSWORD
+            - name: MONGO_HOST
+              value: "mongo.build-system.svc.cluster.local:27017"
+            - name: PULLER_IMAGE
+              value: "socr8s-puller:latest"
+            - name: PULL_NAMESPACE
+              value: "build-system"
+            - name: POLL_INTERVAL
+              value: "10"
+            - name: JOB_TIMEOUT
+              value: "3600"
+            - name: MAX_CONCURRENT
+              value: "3"
+          ## dispatcher is lightweight ... doesnt need much CPU/RAM
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

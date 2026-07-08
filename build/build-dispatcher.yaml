@@ -1,0 +1,95 @@
+## RBAC to give the dispatcher access to k8s resource management (jobs, pods, logs)
+## need a role, service account, and role binding resource to attach the role to the SA
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: build-dispatcher
+  namespace: build-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: build-dispatcher
+  namespace: build-system
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs", "jobs/status"]
+    verbs: ["create", "get", "list", "watch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: build-dispatcher
+  namespace: build-system
+subjects:
+  - kind: ServiceAccount
+    name: build-dispatcher
+    namespace: build-system
+roleRef:
+  kind: Role
+  name: build-dispatcher
+  apiGroup: rbac.authorization.k8s.io
+---
+## deployment so the dispatcher stays up and running
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: build-dispatcher
+  namespace: build-system
+spec:
+  ## stick to one replica to avoid duplicate claims / competition for queue
+  replicas: 1
+  selector:
+    matchLabels:
+      app: build-dispatcher
+  template:
+    metadata:
+      labels:
+        app: build-dispatcher
+    spec:
+      serviceAccountName: build-dispatcher
+
+      ## NOTE: the dispatcher image is built and loaded locally here (see socr8s README)
+      ## in the future ... move to a registry
+      ## imagePullPolicy: Never ensures k8s doesnt try to look for it in a registry
+      containers:
+        - name: dispatcher
+          image: build-dispatcher:latest
+          imagePullPolicy: Never 
+
+          env:
+            ## mongo credentials come from the shared secret
+            ## the dispatcher builds the URI at runtime
+            - name: MONGO_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds
+                  key: MONGO_USERNAME
+            - name: MONGO_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds
+                  key: MONGO_PASSWORD
+            - name: MONGO_HOST
+              value: "mongo.build-system.svc.cluster.local:27017"
+            - name: BUILDER_IMAGE
+              value: "socr8s-builder:latest"
+            - name: BUILD_NAMESPACE
+              value: "build-system"
+            - name: POLL_INTERVAL
+              value: "10"
+            - name: JOB_TIMEOUT
+              value: "3600"
+            - name: MAX_CONCURRENT
+              value: "3"
+          ## dispatcher is lightweight ... doesnt need much CPU/RAM
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

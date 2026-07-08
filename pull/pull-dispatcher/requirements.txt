@@ -1,0 +1,2 @@
+kubernetes>=28.1,<30
+pymongo>=4.6,<5

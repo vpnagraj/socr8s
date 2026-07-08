@@ -1,0 +1,44 @@
+## example of a standalone job spec for debugging / demonstration
+## ... in production the dispatcher creates jobs programmatically via the k8s API
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: image-builder-manual
+  namespace: build-system
+  labels:
+    app: image-builder
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: builder
+          image: socr8s-builder:latest
+          imagePullPolicy: Never
+
+          env:
+            - name: BUILD_REPO_URL
+              value: "https://github.com/MBaysanLab/cosap"
+            - name: BUILD_IMAGE_TAG
+              value: "cosap:latest"
+            - name: BUILD_DOCKERFILE
+              value: "Dockerfile"
+            - name: BUILD_CONTEXT
+              value: "."
+            - name: BUILD_JOB_ID
+              value: "manual-test"
+
+          securityContext:
+            privileged: true
+
+          ## scratch space during build
+          ## an emptyDir is ephemeral and doesnt provide persistent storage
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+
+      volumes:
+        - name: workspace
+          emptyDir: {}

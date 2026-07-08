@@ -1,0 +1,87 @@
+## MongoDB resources for the build and pull queues
+## TODO:
+##  - Add a StatefulSet with a PersistentVolumeClaim for persistent storage
+##  - Add an external service  to interface with MongoDB (Atlas, DocumentDB, etc.)
+## ─────────────────────────────────────────────────────────────────────────────
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: build-system
+---
+## NOTE: the socr8s stack requires a secret for MongoDB credentials ...
+## ... the mongo-creds secret is intentionally NOT included in this spec file ...
+## ... so to create it before applying this file:
+##
+##   kubectl -n build-system create secret generic mongo-creds \
+##     --from-literal=MONGO_USERNAME=buildadmin \
+##     --from-literal=MONGO_PASSWORD="$(openssl rand -base64 24)"
+##
+## ... then the deployment below will access via secretKeyRef ...
+## ...  and dispatchers are set up to look for the same 'mongo-creds' secret
+---
+##  service at stable DNS: mongo.build-system.svc.cluster.local
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: build-system
+spec:
+  selector:
+    app: mongo
+  ports:
+    - port: 27017
+      targetPort: 27017
+  ## creates this service as headless so dispatcher and jobs can resolve db directly
+  clusterIP: None
+---
+## deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+  namespace: build-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds
+                  key: MONGO_USERNAME
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-creds
+                  key: MONGO_PASSWORD
+
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+
+      volumes:
+        ## emptyDir is fine for dev; data is lost when the pod is evicted.
+        ## Swap to a PVC for durability.
+        - name: mongo-data
+          emptyDir: {}
