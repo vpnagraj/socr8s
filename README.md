@@ -11,7 +11,9 @@ The socr8s system has two components that share one database:
 
 Each component is driven by a long-running **dispatcher**  that watches a MongoDB collection for queued work and iteratively launches a Kubernetes job for each item in the queue. Jobs themselves are ephemeral and communicate only with the dispatcher. Build and pull results are emitted in structured stdout, which the dispatchers translate to the database. Database credentials are managed by secrets configured when the stack is launched.
 
-<img src="assets/socr8s-architecture.png" width="75%" alt="socr8s architecture diagram">
+<p align="center">
+  <img src="assets/socr8s-architecture.png" width="50%" alt="socr8s architecture diagram">
+</p>
 
 ## Requirements
 
