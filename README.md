@@ -11,7 +11,7 @@ The socr8s system has two components that share one database:
 
 Each component is driven by a long-running **dispatcher**  that watches a MongoDB collection for queued work and iteratively launches a Kubernetes job for each item in the queue. Jobs themselves are ephemeral and communicate only with the dispatcher. Build and pull results are emitted in structured stdout, which the dispatchers translate to the database. Database credentials are managed by secrets configured when the stack is launched.
 
-![](assets/socr8s-architecture.png)
+<img src="assets/socr8s-architecture.png" width="75%" alt="socr8s architecture diagram">
 
 ## Requirements
 
@@ -199,11 +199,9 @@ pulls.insert_one({
 The [`examples/`](examples/) includes scripts that demonstrate additional ways to populate the
 queue, including with shell helpers (see `enqueue-build.sh` and `enqueue-pull.sh`, both of which requires `mongosh`). The directory also has a standalone Kubernetes build job spec (`build-job.yaml`) that could be run by hand and paired with a manual DB insert for demonstration purposes. 
 
----
+## Considerations
 
-## Constraints
-
-The current implementation of socr8s has several known constraints, all of which are being considered for future improvements to the stack:
+The current implementation of socr8s has several known considerations, all of which are eligible for future improvements to the stack:
 
 - **MongoDB does not have persistent storage**: The database uses an `emptyDir` volume, so data is lost if the pod is evicted. A PersistentVolumeClaim (or a managed MongoDB service) would make it durable.
 - **Images need to be loaded directly**: The images used by the socr8s dispatchers and jobs are not currently available on public container registries. Manifests are specified to never attempt a pull. For more streamlined implementation, images should be built and pushed externally, with manifests accordingly updated to pull .
