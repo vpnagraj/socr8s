@@ -1,6 +1,6 @@
 # socr8s
 
-**socr8s** is a Kubernetes-native apparatus for reviewing containerized software at scale. The stack provides a means to store metadata about containerized software (e.g., repository, image specification file path), create a queue, and then systematically launch, monitor, and record results of jobs attempting to build or pull the image. Outcome retained in the database include success/failure, image size, timing, and full logs.
+**socr8s** is a Kubernetes-native apparatus for reviewing containerized software at scale. The stack provides a means to store metadata about containerized software (e.g., repository, image specification file path), create a queue, and then systematically launch, monitor, and record results of jobs attempting to build or pull the image. Outcomes retained in the database include success/failure, image size, timing, and full logs.
 
 ## Architecture
 
@@ -30,7 +30,7 @@ The stack runs in a single Kubernetes namespace (`build-system`) and consists of
 
 Note that several identifiers are assumed and hardcoded throughout:
 
-- Kubernetes namepace for all resources: `build-system`
+- Kubernetes namespace for all resources: `build-system`
 - Kubernetes secret for MongoDB credentials: `mongo-creds`
 - Docker image names for jobs: `socr8s-builder` and `socr8s-puller`
 - Docker image names for dispatchers: `build-dispatcher` and `pull-dispatcher`
@@ -101,7 +101,7 @@ Other platforms will require slightly different approaches. For example, K3S can
 
 ### 4. Deploy the dispatchers
 
-In addition to the deployment specs, the each dispatcher manifest includes its own ServiceAccount, Role, and RoleBinding to grant access to create jobs and read pod logs. 
+In addition to the deployment specs, each dispatcher manifest includes its own ServiceAccount, Role, and RoleBinding to grant access to create jobs and read pod logs. 
 
 Deploying the dispatchers will create all required resources:
 
@@ -117,7 +117,7 @@ kubectl -n build-system get deploy
 kubectl -n build-system logs -f deploy/build-dispatcher
 ```
 
-The dispatchers begin polling immediately and will process any queued items as soon as they appear in MongoDB. Each dispatches up to `MAX_CONCURRENT` jobs at a time (defaults to 3 per the deployment manifests).
+The dispatchers begin polling immediately and will process any queued items as soon as they appear in MongoDB. Each one dispatches up to `MAX_CONCURRENT` jobs at a time (defaults to 3 per the deployment manifests).
 
 ## Interacting with the stack
 
@@ -199,7 +199,7 @@ pulls.insert_one({
 ```
 
 The [`examples/`](examples/) includes scripts that demonstrate additional ways to populate the
-queue, including with shell helpers (see `enqueue-build.sh` and `enqueue-pull.sh`, both of which requires `mongosh`). The directory also has a standalone Kubernetes build job spec (`build-job.yaml`) that could be run by hand and paired with a manual DB insert for demonstration purposes. 
+queue, including with shell helpers (see `enqueue-build.sh` and `enqueue-pull.sh`, both of which require `mongosh`). The directory also has a standalone Kubernetes build job spec (`build-job.yaml`) that could be run by hand and paired with a manual DB insert for demonstration purposes. 
 
 ## Considerations
 
