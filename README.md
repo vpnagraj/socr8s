@@ -1,6 +1,8 @@
 # socr8s
 
-**socr8s** is a Kubernetes-native apparatus for reviewing containerized software at scale. The stack provides a means to store metadata about containerized software (e.g., repository, image specification file path), create a queue, and then systematically launch, monitor, and record results of jobs attempting to build or pull the image. Outcomes retained in the database include success/failure, image size, timing, and full logs.
+🗣️ "soh-KRAYTS" 
+
+**socr8s**[^1] is a Kubernetes-native apparatus for reviewing containerized software at scale. The stack provides a means to store metadata about containerized software (e.g., repository, image specification file path), create a queue, and then systematically launch, monitor, and record results of jobs attempting to build or pull the image. Outcomes retained in the database include success/failure, image size, timing, and full logs.
 
 ## Architecture
 
@@ -214,3 +216,5 @@ The current implementation of socr8s has several known considerations, all of wh
 ## License
 
 socr8s is released under the MIT License. See [LICENSE](LICENSE) for more details.
+
+[^1]: **so**ftware **c**ontainerization **r**eview ~~apparatu~~**8s**
