@@ -48,7 +48,7 @@ else:
 ## except for GRACE_PERIOD which is set here
 MONGO_DB = os.getenv("MONGO_DB", "builddb")
 MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "pulls")
-PULLER_IMAGE = os.getenv("PULLER_IMAGE", "image-puller:latest")
+PULLER_IMAGE = os.getenv("PULLER_IMAGE", "vpnagraj/socr8s-puller:latest")
 PULL_NAMESPACE = os.getenv("PULL_NAMESPACE", "build-system")
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "10"))
 JOB_TIMEOUT = int(os.getenv("JOB_TIMEOUT", "3600"))
@@ -120,7 +120,7 @@ def create_k8s_job(pull_doc: dict) -> str:
     container = client.V1Container(
         name="puller",
         image=PULLER_IMAGE,
-        image_pull_policy="Never",
+        image_pull_policy="IfNotPresent",
         env=env,
         security_context=client.V1SecurityContext(privileged=True),
         resources=client.V1ResourceRequirements(

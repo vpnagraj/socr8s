@@ -57,8 +57,8 @@ spec:
       ## imagePullPolicy: Never ensures k8s doesnt try to look for it in a registry
       containers:
         - name: dispatcher
-          image: build-dispatcher:latest
-          imagePullPolicy: Never 
+          image: vpnagraj/socr8s-build-dispatcher:latest
+          imagePullPolicy: IfNotPresent
 
           env:
             ## mongo credentials come from the shared secret
@@ -76,7 +76,7 @@ spec:
             - name: MONGO_HOST
               value: "mongo.build-system.svc.cluster.local:27017"
             - name: BUILDER_IMAGE
-              value: "socr8s-builder:latest"
+              value: "vpnagraj/socr8s-builder:latest"
             - name: BUILD_NAMESPACE
               value: "build-system"
             - name: POLL_INTERVAL
