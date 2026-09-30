@@ -52,9 +52,9 @@ spec:
       serviceAccountName: pull-dispatcher
 
       containers:
-        - name: dispatcher
-          image: pull-dispatcher:latest
-          imagePullPolicy: Never
+        - name: pull-dispatcher
+          image: vpnagraj/socr8s-pull-dispatcher:latest
+          imagePullPolicy: IfNotPresent
 
           env:
             - name: MONGO_USERNAME
@@ -70,7 +70,7 @@ spec:
             - name: MONGO_HOST
               value: "mongo.build-system.svc.cluster.local:27017"
             - name: PULLER_IMAGE
-              value: "socr8s-puller:latest"
+              value: "vpnagraj/socr8s-puller:latest"
             - name: PULL_NAMESPACE
               value: "build-system"
             - name: POLL_INTERVAL

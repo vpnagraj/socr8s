@@ -55,7 +55,7 @@ else:
 ## except for GRACE_PERIOD which is set here
 MONGO_DB = os.getenv("MONGO_DB", "builddb")
 MONGO_COLLECTION = os.getenv("MONGO_COLLECTION", "builds")
-BUILDER_IMAGE = os.getenv("BUILDER_IMAGE", "socr8s-builder:latest")
+BUILDER_IMAGE = os.getenv("BUILDER_IMAGE", "vpnagraj/socr8s-builder:latest")
 BUILD_NAMESPACE = os.getenv("BUILD_NAMESPACE", "build-system")
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL", "10"))
 JOB_TIMEOUT = int(os.getenv("JOB_TIMEOUT", "3600"))
@@ -130,7 +130,7 @@ def create_k8s_job(build_doc: dict) -> str:
     container = client.V1Container(
         name="builder",
         image=BUILDER_IMAGE,
-        image_pull_policy="Never",
+        image_pull_policy="IfNotPresent",
         env=env,
         security_context=client.V1SecurityContext(privileged=True),
         volume_mounts=[
