@@ -3,11 +3,6 @@
 ##  - Add a StatefulSet with a PersistentVolumeClaim for persistent storage
 ##  - Add an external service  to interface with MongoDB (Atlas, DocumentDB, etc.)
 ## ─────────────────────────────────────────────────────────────────────────────
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: build-system
----
 ## NOTE: the socr8s stack requires a secret for MongoDB credentials ...
 ## ... the mongo-creds secret is intentionally NOT included in this spec file ...
 ## ... so to create it before applying this file:
